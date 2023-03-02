@@ -9,7 +9,6 @@ import java.awt.event.KeyListener;
 import javax.swing.JPanel;
 
 import entity.Player;
-import tile.TileManager;
 
 public class GameScreen extends JPanel implements Runnable{
 	
@@ -27,10 +26,13 @@ public class GameScreen extends JPanel implements Runnable{
 	//FPS
 	int FPS = 60;
 	
-	TileManager tileM = new TileManager(this);
 	KeyHandler keyH = new KeyHandler();
 	Thread gameThread;
 	Player player = new Player(this,keyH);
+	
+	int x  = 100;
+	int y = 100;
+	int speed = 4;
 	
 	public GameScreen() {
 		this.setPreferredSize(new Dimension(screenWidth,screenHeight));
@@ -47,25 +49,35 @@ public class GameScreen extends JPanel implements Runnable{
 	
 	@Override
 	public void run() {
-		while(gameThread != null) {
-			double drawInterval = 1000000000/FPS; // .01666 seconds
-			double delta = 0;
-			long lastTime = System.nanoTime();
-			long currentTime;
+		double drawInterval = 1000000000/FPS;
+		double delta = 0;
+		long lastTime = System.nanoTime();
+		long currentTime;
+		long timer = 0;
+		int drawCount = 0;
+		
+		while(gameThread != null)
+		{
+			currentTime = System.nanoTime();
 			
-			while(gameThread != null) {
-				currentTime = System.nanoTime();
-				
-				delta += (currentTime - lastTime)/drawInterval;
-				lastTime = currentTime;
-				
-				if(delta >= 1) {
-					update();
-					repaint();
-					delta--;
-					
-				}
+			delta += (currentTime - lastTime) / drawInterval;
+			timer += (currentTime - lastTime);
+			lastTime = currentTime;
+			
+			if(delta >= 1)
+			{
+				update();
+				repaint();
+				delta--;
+				drawCount++;
 			}
+			
+			if(timer >= 1000000000)
+			{
+				System.out.println("FPS:"+drawCount);
+				drawCount = 0;
+				timer = 0;
+			}		
 		}
 	}
 	
@@ -76,9 +88,7 @@ public class GameScreen extends JPanel implements Runnable{
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		
-		Graphics2D g2 = (Graphics2D)g;
-		
-		tileM.draw(g2);
+		Graphics2D g2 = ((Graphics2D)g);
 		
 		player.draw(g2);
 		
